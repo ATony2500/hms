@@ -30,7 +30,7 @@ $pageTitle = 'Doctors';
 include 'includes/header.php';
 ?>
 
-<h2>Doctors Management</h2>
+<h2>Doctors Management(ola)</h2>
 
 <?php echo $message; ?>
 
