@@ -13,18 +13,36 @@ if (isset($_SESSION['message'])) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = $_POST['name'];
-    $specialization = $_POST['specialization'];
-    $phone = $_POST['phone'];
-    $email = $_POST['email'];
-    
-    $stmt = $conn->prepare("INSERT INTO doctors (name, specialization, phone, email) VALUES (?, ?, ?, ?)");
-    $stmt->bind_param("ssss", $name, $specialization, $phone, $email);
-    
-    if ($stmt->execute()) {
-        $_SESSION['message'] = '<div class="alert alert-success">Doctor added successfully!</div>';
-        header("Location: doctors.php");
-        exit();
+    // If update_id is present, perform update; otherwise insert new record
+    if (isset($_POST['update_id']) && !empty($_POST['update_id'])) {
+        $id = intval($_POST['update_id']);
+        $name = $_POST['name'];
+        $specialization = $_POST['specialization'];
+        $phone = $_POST['phone'];
+        $email = $_POST['email'];
+
+        $stmt = $conn->prepare("UPDATE doctors SET name = ?, specialization = ?, phone = ?, email = ? WHERE id = ?");
+        $stmt->bind_param("ssssi", $name, $specialization, $phone, $email, $id);
+
+        if ($stmt->execute()) {
+            $_SESSION['message'] = '<div class="alert alert-success">Doctor updated successfully!</div>';
+            header("Location: doctors.php");
+            exit();
+        }
+    } else {
+        $name = $_POST['name'];
+        $specialization = $_POST['specialization'];
+        $phone = $_POST['phone'];
+        $email = $_POST['email'];
+        
+        $stmt = $conn->prepare("INSERT INTO doctors (name, specialization, phone, email) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssss", $name, $specialization, $phone, $email);
+        
+        if ($stmt->execute()) {
+            $_SESSION['message'] = '<div class="alert alert-success">Doctor added successfully!</div>';
+            header("Location: doctors.php");
+            exit();
+        }
     }
 }
 
@@ -99,6 +117,7 @@ include 'includes/header.php';
                     <td><?php echo htmlspecialchars($row['phone']); ?></td>
                     <td><?php echo htmlspecialchars($row['email']); ?></td>
                     <td>
+                        <button type="button" class="btn btn-primary" onclick="openEditModal(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars($row['name']); ?>', '<?php echo htmlspecialchars($row['specialization']); ?>', '<?php echo htmlspecialchars($row['phone']); ?>', '<?php echo htmlspecialchars($row['email']); ?>')">Edit</button>
                         <button type="button" class="btn btn-danger" onclick="openDeleteModal(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars($row['name']); ?>')">Delete</button>
                     </td>
                 </tr>
@@ -129,6 +148,41 @@ include 'includes/header.php';
             <a id="confirmDeleteLink" href="#" class="btn btn-danger">Delete</a>
         </div>
     </div>
+
+        <!-- Edit Modal -->
+        <div id="editModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Edit Doctor</h3>
+                    <span class="modal-close" onclick="closeEditModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm" method="POST">
+                        <input type="hidden" name="update_id" id="update_id" value="">
+                        <div class="form-group">
+                            <label for="edit_name">Name:</label>
+                            <input type="text" id="edit_name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_specialization">Specialization:</label>
+                            <input type="text" id="edit_specialization" name="specialization" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_phone">Phone:</label>
+                            <input type="text" id="edit_phone" name="phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit_email">Email:</label>
+                            <input type="email" id="edit_email" name="email" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button class="btn btn-primary" onclick="document.getElementById('editForm').submit()">Save</button>
+                </div>
+            </div>
+        </div>
 </div>
 
 <?php include 'includes/footer.php'; ?>
@@ -254,6 +308,16 @@ table tbody tr:last-child td {
 .btn-success:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(17, 153, 142, 0.3);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #0d6efd 0%, #6f8efb 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
 }
 
 .btn-danger {
@@ -435,11 +499,31 @@ function closeDeleteModal() {
     modal.classList.remove('show');
 }
 
-// Close modal when clicking outside of it
+function openEditModal(doctorId, name, specialization, phone, email) {
+    const modal = document.getElementById('editModal');
+    document.getElementById('update_id').value = doctorId;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_specialization').value = specialization;
+    document.getElementById('edit_phone').value = phone;
+    document.getElementById('edit_email').value = email;
+
+    modal.classList.add('show');
+}
+
+function closeEditModal() {
+    const modal = document.getElementById('editModal');
+    modal.classList.remove('show');
+}
+
+// Close modals when clicking outside of them
 window.onclick = function(event) {
-    const modal = document.getElementById('deleteModal');
-    if (event.target === modal) {
-        modal.classList.remove('show');
+    const deleteModal = document.getElementById('deleteModal');
+    const editModal = document.getElementById('editModal');
+    if (event.target === deleteModal) {
+        deleteModal.classList.remove('show');
+    }
+    if (event.target === editModal) {
+        editModal.classList.remove('show');
     }
 }
 </script>
