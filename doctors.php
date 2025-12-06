@@ -148,41 +148,41 @@ include 'includes/header.php';
             <a id="confirmDeleteLink" href="#" class="btn btn-danger">Delete</a>
         </div>
     </div>
+</div>
 
-        <!-- Edit Modal -->
-        <div id="editModal" class="modal">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Edit Doctor</h3>
-                    <span class="modal-close" onclick="closeEditModal()">&times;</span>
-                </div>
-                <div class="modal-body">
-                    <form id="editForm" method="POST">
-                        <input type="hidden" name="update_id" id="update_id" value="">
-                        <div class="form-group">
-                            <label for="edit_name">Name:</label>
-                            <input type="text" id="edit_name" name="name" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit_specialization">Specialization:</label>
-                            <input type="text" id="edit_specialization" name="specialization" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit_phone">Phone:</label>
-                            <input type="text" id="edit_phone" name="phone" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit_email">Email:</label>
-                            <input type="email" id="edit_email" name="email" required>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
-                    <button class="btn btn-primary" onclick="document.getElementById('editForm').submit()">Save</button>
-                </div>
-            </div>
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Edit Doctor</h3>
+            <span class="modal-close" onclick="closeEditModal()">&times;</span>
         </div>
+        <div class="modal-body">
+            <form id="editForm" method="POST">
+                <input type="hidden" name="update_id" id="update_id" value="">
+                <div class="form-group">
+                    <label for="edit_name">Name:</label>
+                    <input type="text" id="edit_name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_specialization">Specialization:</label>
+                    <input type="text" id="edit_specialization" name="specialization" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_phone">Phone:</label>
+                    <input type="text" id="edit_phone" name="phone" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_email">Email:</label>
+                    <input type="email" id="edit_email" name="email" required>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="document.getElementById('editForm').submit()">Save</button>
+        </div>
+    </div>
 </div>
 
 <?php include 'includes/footer.php'; ?>
