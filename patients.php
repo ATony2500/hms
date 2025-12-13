@@ -31,7 +31,6 @@ $pageTitle = 'Patients';
 include 'includes/header.php';
 ?>
 
-<h2>Patients Management</h2>
 <h2>Patients Management (Faizal)</h2>
 
 <?php echo $message; ?>
