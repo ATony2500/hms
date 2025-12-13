@@ -36,6 +36,9 @@
                         <a class="nav-link" href="appointments.php"><i class="bi bi-calendar-check"></i> Appointments</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="payments.php"><i class="bi bi-currency-dollar"></i> Payments</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </li>
                 </ul>

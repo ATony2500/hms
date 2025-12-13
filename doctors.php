@@ -64,7 +64,7 @@ if ($totalRes) { $rowCount = $totalRes->fetch_assoc(); $totalDoctors = isset($ro
 ?>
 
 <div class="doctors-container">
-    <h2>Doctors Management</h2>
+    <h2>Doctors Management (ola)</h2>
 
     <?php echo $message; ?>
 
