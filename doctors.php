@@ -57,12 +57,30 @@ if (isset($_GET['delete'])) {
 
 $pageTitle = 'Doctors';
 include 'includes/header.php';
+// get total doctors
+$totalRes = $conn->query("SELECT COUNT(*) AS cnt FROM doctors");
+$totalDoctors = 0;
+if ($totalRes) { $rowCount = $totalRes->fetch_assoc(); $totalDoctors = isset($rowCount['cnt']) ? $rowCount['cnt'] : 0; }
 ?>
 
 <div class="doctors-container">
-    <h2>Doctors Management (ola)</h2>
+    <h2>Doctors Management</h2>
 
     <?php echo $message; ?>
+
+    <div class="header-actions">
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value"><?php echo $totalDoctors; ?></div>
+                <div class="stat-label">Total Doctors</div>
+            </div>
+        </div>
+        <div class="controls">
+            <input id="tableSearch" type="search" placeholder="Search doctors by name, specialization, phone, email..." class="search-input" oninput="filterDoctors()" />
+            <button class="btn btn-success" onclick="exportTableToCSV('doctors.csv')">Export CSV</button>
+            <button class="btn" onclick="location.reload()">Refresh</button>
+        </div>
+    </div>
 
     <div class="form-container">
         <h3>Add New Doctor</h3>
@@ -93,16 +111,16 @@ include 'includes/header.php';
 
     <div class="table-container">
         <h3>All Doctors</h3>
-        <table>
+        <table id="doctorsTable">
             <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Specialization</th>
-                    <th>Phone</th>
-                    <th>Email</th>
-                    <th>Actions</th>
-                </tr>
+                        <tr>
+                            <th class="sortable" onclick="sortTable(0)">ID</th>
+                            <th class="sortable" onclick="sortTable(1)">Name</th>
+                            <th class="sortable" onclick="sortTable(2)">Specialization</th>
+                            <th class="sortable" onclick="sortTable(3)">Phone</th>
+                            <th class="sortable" onclick="sortTable(4)">Email</th>
+                            <th>Actions</th>
+                        </tr>
             </thead>
             <tbody>
                 <?php
@@ -112,13 +130,18 @@ include 'includes/header.php';
                 ?>
                 <tr>
                     <td><strong><?php echo $row['id']; ?></strong></td>
-                    <td><?php echo htmlspecialchars($row['name']); ?></td>
+                    <td>
+                        <div class="name-cell">
+                            <div class="avatar"><?php echo strtoupper(mb_substr($row['name'], 0, 1)); ?></div>
+                            <div class="name-text"><?php echo htmlspecialchars($row['name']); ?></div>
+                        </div>
+                    </td>
                     <td><?php echo htmlspecialchars($row['specialization']); ?></td>
                     <td><?php echo htmlspecialchars($row['phone']); ?></td>
                     <td><?php echo htmlspecialchars($row['email']); ?></td>
                     <td>
-                        <button type="button" class="btn btn-primary" onclick="openEditModal(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars($row['name']); ?>', '<?php echo htmlspecialchars($row['specialization']); ?>', '<?php echo htmlspecialchars($row['phone']); ?>', '<?php echo htmlspecialchars($row['email']); ?>')">Edit</button>
-                        <button type="button" class="btn btn-danger" onclick="openDeleteModal(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars($row['name']); ?>')">Delete</button>
+                        <button type="button" class="btn btn-primary" onclick="openEditModal(<?php echo $row['id']; ?>, <?php echo json_encode($row['name']); ?>, <?php echo json_encode($row['specialization']); ?>, <?php echo json_encode($row['phone']); ?>, <?php echo json_encode($row['email']); ?>)">Edit</button>
+                        <button type="button" class="btn btn-danger" onclick="openDeleteModal(<?php echo $row['id']; ?>, <?php echo json_encode($row['name']); ?>)">Delete</button>
                     </td>
                 </tr>
                 <?php 
@@ -350,6 +373,65 @@ table tbody tr:last-child td {
     gap: 20px;
 }
 
+/* Header actions */
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 18px;
+}
+.stat-card {
+    background: white;
+    padding: 16px 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #0d6efd;
+}
+.stat-label {
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+.controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.search-input {
+    padding: 10px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    min-width: 260px;
+}
+
+/* Name/avatar */
+.name-cell { display: flex; align-items: center; gap: 12px; }
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+.name-text { font-weight: 600; color: #343a40; }
+
+/* Sortable header */
+.sortable { cursor: pointer; }
+.sortable:after { content: '\25B2'; opacity: 0.15; margin-left: 8px; font-size: 0.7rem; }
+.sortable.sorted-asc:after { content: '\25B2'; opacity: 0.9; }
+.sortable.sorted-desc:after { content: '\25BC'; opacity: 0.9; }
+
 /* Modal Styles */
 .modal {
     display: none;
@@ -524,6 +606,87 @@ window.onclick = function(event) {
     }
     if (event.target === editModal) {
         editModal.classList.remove('show');
+    }
+}
+
+// Filter table rows based on search input
+function filterDoctors() {
+    const q = document.getElementById('tableSearch').value.toLowerCase().trim();
+    const tbody = document.querySelector('#doctorsTable tbody');
+    if (!tbody) return;
+    Array.from(tbody.rows).forEach(row => {
+        const cells = row.cells;
+        // columns: 0 id, 1 name, 2 specialization, 3 phone, 4 email
+        const text = (
+            (cells[1] && cells[1].innerText) + ' ' +
+            (cells[2] && cells[2].innerText) + ' ' +
+            (cells[3] && cells[3].innerText) + ' ' +
+            (cells[4] && cells[4].innerText)
+        ).toLowerCase();
+        row.style.display = q === '' || text.indexOf(q) !== -1 ? '' : 'none';
+    });
+}
+
+// Sort table by column index (0-based)
+function sortTable(colIndex) {
+    const table = document.getElementById('doctorsTable');
+    const tbody = table.tBodies[0];
+    const rows = Array.from(tbody.rows);
+    const header = table.tHead.rows[0].cells[colIndex];
+
+    // determine sort direction
+    let dir = 'asc';
+    if (header.classList.contains('sorted-asc')) dir = 'desc';
+
+    // remove sorted classes
+    Array.from(table.tHead.querySelectorAll('.sortable')).forEach(h => h.classList.remove('sorted-asc','sorted-desc'));
+    header.classList.add(dir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+
+    rows.sort((a,b) => {
+        const A = (a.cells[colIndex] ? a.cells[colIndex].innerText.trim() : '').toLowerCase();
+        const B = (b.cells[colIndex] ? b.cells[colIndex].innerText.trim() : '').toLowerCase();
+        if (colIndex === 0) { // numeric id
+            return dir === 'asc' ? (Number(A) - Number(B)) : (Number(B) - Number(A));
+        }
+        if (A < B) return dir === 'asc' ? -1 : 1;
+        if (A > B) return dir === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    // append in new order
+    rows.forEach(r => tbody.appendChild(r));
+}
+
+// Export visible rows to CSV
+function exportTableToCSV(filename = 'export.csv') {
+    const table = document.getElementById('doctorsTable');
+    const rows = [];
+    // headers
+    const headers = Array.from(table.tHead.rows[0].cells).map(h => h.innerText.trim());
+    rows.push(headers.join(','));
+
+    Array.from(table.tBodies[0].rows).forEach(r => {
+        if (r.style.display === 'none') return; // skip hidden rows
+        const cols = Array.from(r.cells).slice(0,5).map(c => '"' + c.innerText.replace(/"/g,'""') + '"');
+        rows.push(cols.join(','));
+    });
+
+    downloadCSV(rows.join('\n'), filename);
+}
+
+function downloadCSV(csv, filename) {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    if (navigator.msSaveBlob) { // IE 10+
+        navigator.msSaveBlob(blob, filename);
+    } else {
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 }
 </script>
