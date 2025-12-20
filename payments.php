@@ -4,7 +4,48 @@ require_once 'config/database.php';
 requireLogin();
 
 $message = '';
-// show message from session if set (set after insert)
+$pageTitle = 'Payments';
+
+// --- Filters (from GET) ---
+$filter_from = isset($_GET['from']) ? $_GET['from'] : '';
+$filter_to = isset($_GET['to']) ? $_GET['to'] : '';
+$filter_type = isset($_GET['payment_type']) ? $_GET['payment_type'] : '';
+$filter_dept = isset($_GET['department']) ? $_GET['department'] : '';
+
+// build SQL filter string safely
+$where = '';
+if ($filter_from) {
+    $from = $conn->real_escape_string($filter_from);
+    $where .= " AND created_at >= '${from} 00:00:00'";
+}
+if ($filter_to) {
+    $to = $conn->real_escape_string($filter_to);
+    $where .= " AND created_at <= '${to} 23:59:59'";
+}
+if ($filter_type) {
+    $ft = $conn->real_escape_string($filter_type);
+    $where .= " AND payment_type = '${ft}'";
+}
+if ($filter_dept) {
+    $fd = $conn->real_escape_string($filter_dept);
+    $where .= " AND department LIKE '%${fd}%'";
+}
+
+// Export CSV handling for filtered results
+if (isset($_GET['export']) && $_GET['export'] == '1') {
+    $csvRes = $conn->query("SELECT * FROM payments WHERE 1=1 ${where} ORDER BY id DESC");
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename=payments_export.csv');
+    $out = fopen('php://output', 'w');
+    fputcsv($out, ['id','patient_id','patient_name','department','doctor_name','admission_date','discharge_date','service_name','cost','discount','advance_paid','total_due','payment_type','card_check_details','created_at']);
+    if ($csvRes) {
+        while ($r = $csvRes->fetch_assoc()) fputcsv($out, $r);
+    }
+    fclose($out);
+    exit();
+}
+
+// Read session message if any
 if (isset($_SESSION['message'])) {
     $message = $_SESSION['message'];
     unset($_SESSION['message']);
@@ -102,7 +143,7 @@ include 'includes/header.php';
 
 <?php
 // Summary numbers
-$totRes = $conn->query("SELECT COUNT(*) AS cnt, IFNULL(SUM(cost),0) AS total_revenue, IFNULL(SUM(total_due),0) AS total_outstanding FROM payments");
+$totRes = $conn->query("SELECT COUNT(*) AS cnt, IFNULL(SUM(cost),0) AS total_revenue, IFNULL(SUM(total_due),0) AS total_outstanding FROM payments WHERE 1=1 ${where}");
 $totals = ['cnt'=>0,'total_revenue'=>0,'total_outstanding'=>0];
 if ($totRes) { $totals = $totRes->fetch_assoc(); }
 ?>
@@ -126,6 +167,38 @@ if ($totRes) { $totals = $totRes->fetch_assoc(); }
         </div>
     </div>
 
+    <!-- Filters -->
+    <div class="card" style="padding:12px; margin-bottom:12px;">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-auto">
+                <label class="form-label">From</label>
+                <input type="date" name="from" value="<?php echo htmlspecialchars($filter_from); ?>" class="form-control">
+            </div>
+            <div class="col-auto">
+                <label class="form-label">To</label>
+                <input type="date" name="to" value="<?php echo htmlspecialchars($filter_to); ?>" class="form-control">
+            </div>
+            <div class="col-auto">
+                <label class="form-label">Type</label>
+                <select name="payment_type" class="form-select">
+                    <option value="">All</option>
+                    <option value="Cash" <?php if ($filter_type=='Cash') echo 'selected';?>>Cash</option>
+                    <option value="Card" <?php if ($filter_type=='Card') echo 'selected';?>>Card</option>
+                    <option value="Check" <?php if ($filter_type=='Check') echo 'selected';?>>Check</option>
+                </select>
+            </div>
+            <div class="col-auto">
+                <label class="form-label">Department</label>
+                <input type="text" name="department" value="<?php echo htmlspecialchars($filter_dept); ?>" class="form-control" placeholder="Department">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-primary">Apply</button>
+                <a href="?export=1<?php echo ($filter_from? '&from='.urlencode($filter_from):'') . ($filter_to? '&to='.urlencode($filter_to):'') . ($filter_type? '&payment_type='.urlencode($filter_type):'') . ($filter_dept? '&department='.urlencode($filter_dept):''); ?>" class="btn btn-outline-secondary">Export CSV</a>
+                <a href="payments.php" class="btn btn-link">Reset</a>
+            </div>
+        </form>
+    </div>
+
     <?php if (!empty($message)) echo $message; ?>
 
     <div class="form-container">
@@ -134,57 +207,57 @@ if ($totRes) { $totals = $totRes->fetch_assoc(); }
             <div class="form-row">
                 <div class="form-group">
                     <label>Patient ID</label>
-                    <input type="text" name="patient_id" id="patient_id" placeholder="Patient ID" required>
+                    <input type="text" name="patient_id" id="patient_id" placeholder="Patient ID" required class="form-control">
                 </div>
                 <div class="form-group">
                     <label>Patient Name</label>
-                    <input type="text" name="patient_name" id="patient_name" placeholder="Full name" required>
+                    <input type="text" name="patient_name" id="patient_name" placeholder="Full name" required class="form-control">
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label>Department</label>
-                    <input type="text" name="department" id="department" placeholder="Department e.g., Cardiology" required>
+                    <input type="text" name="department" id="department" placeholder="Department e.g., Cardiology" required class="form-control">
                 </div>
                 <div class="form-group">
                     <label>Doctor Name</label>
-                    <input type="text" name="doctor_name" id="doctor_name" placeholder="Doctor" required>
+                    <input type="text" name="doctor_name" id="doctor_name" placeholder="Doctor" required class="form-control">
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label>Admission Date</label>
-                    <input type="date" name="admission_date" id="admission_date">
+                    <input type="date" name="admission_date" id="admission_date" class="form-control">
                 </div>
                 <div class="form-group">
                     <label>Discharge Date</label>
-                    <input type="date" name="discharge_date" id="discharge_date">
+                    <input type="date" name="discharge_date" id="discharge_date" class="form-control">
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label>Service Name</label>
-                    <input type="text" name="service_name" id="service_name" placeholder="e.g., Surgery" required>
+                    <input type="text" name="service_name" id="service_name" placeholder="e.g., Surgery" required class="form-control">
                 </div>
                 <div class="form-group">
                     <label>Cost of Treatment</label>
-                    <input type="number" step="0.01" name="cost" id="cost" placeholder="0.00" required oninput="recalc()">
+                    <input type="number" step="0.01" name="cost" id="cost" placeholder="0.00" required oninput="recalc()" class="form-control">
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label>Discount</label>
-                    <input type="number" step="0.01" name="discount" id="discount" value="0.00" oninput="recalc()">
+                    <input type="number" step="0.01" name="discount" id="discount" value="0.00" oninput="recalc()" class="form-control">
                 </div>
                 <div class="form-group">
                     <label>Advance Paid</label>
-                    <input type="number" step="0.01" name="advance_paid" id="advance_paid" value="0.00" oninput="recalc()">
+                    <input type="number" step="0.01" name="advance_paid" id="advance_paid" value="0.00" oninput="recalc()" class="form-control">
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label>Payment Type</label>
-                    <select name="payment_type" id="payment_type" onchange="toggleCardField()">
+                    <select name="payment_type" id="payment_type" onchange="toggleCardField()" class="form-select">
                         <option value="Cash">Cash</option>
                         <option value="Card">Card</option>
                         <option value="Check">Check</option>
@@ -192,14 +265,14 @@ if ($totRes) { $totals = $totRes->fetch_assoc(); }
                 </div>
                 <div class="form-group" id="card_check_group" style="display:none;">
                     <label>Card / Check Details</label>
-                    <input type="text" name="card_check_details" id="card_check_details" placeholder="Card last 4 / Check #">
+                    <input type="text" name="card_check_details" id="card_check_details" placeholder="Card last 4 / Check #" class="form-control">
                 </div>
             </div>
             <input type="hidden" name="ajax" value="0" id="ajax_flag">
             <div class="form-row">
                 <div class="form-group">
                     <label>Total Due</label>
-                    <input type="text" id="total_due_display" readonly>
+                    <input type="text" id="total_due_display" readonly class="form-control">
                 </div>
             </div>
             <button type="submit" class="btn btn-success">Submit Payment</button>
@@ -225,7 +298,7 @@ if ($totRes) { $totals = $totRes->fetch_assoc(); }
                     </thead>
                     <tbody>
                         <?php
-                        $pRes = $conn->query("SELECT * FROM payments ORDER BY id DESC LIMIT 10");
+                        $pRes = $conn->query("SELECT * FROM payments WHERE 1=1 ${where} ORDER BY id DESC LIMIT 10");
                         if ($pRes && $pRes->num_rows > 0) {
                             while ($p = $pRes->fetch_assoc()):
                         ?>
