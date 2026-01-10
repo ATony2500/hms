@@ -99,7 +99,7 @@ include 'includes/header.php';
                         <?php echo htmlspecialchars($patient['name']); ?>
                     </option>
                 <?php endwhile; ?>
-            </select>
+                </select>
         </div>
 
         <div class="form-group">
