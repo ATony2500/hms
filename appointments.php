@@ -79,7 +79,7 @@ include 'includes/header.php';
 <?php echo $message; ?>
 
 <div class="form-container">
-    <h3><?php echo $editAppointment ? 'Edit Appointment' : 'Add New Appointment'; ?></h3>
+    <h3><?php echo $editAppointment ? 'Edit Appointment' : 'Schedule Appointment'; ?></h3>
     <form method="POST" action="">
         <?php if ($editAppointment): ?>
             <input type="hidden" name="id" value="<?php echo $editAppointment['id']; ?>">
@@ -89,6 +89,7 @@ include 'includes/header.php';
             <label>Patient:</label>
             <select name="patient_id" required>
                 <option value="">Select Patient</option>
+                
                 <?php 
                 $patients->data_seek(0);
                 while ($patient = $patients->fetch_assoc()): 
@@ -154,18 +155,18 @@ include 'includes/header.php';
 
 <div class="table-container">
     <h3>All Appointments</h3>
-    <table>
+    <table class="table">
         <thead>
             <tr>
-                <th>ID</th>
-                <th>Patient</th>
-                <th>Doctor</th>
-                <th>Date</th>
-                <th>Time</th>
-                <th>Status</th>
-                <th>Notes</th>
-                <th>Actions</th>
-            </tr>
+                <th scope="col">ID</th>
+                <th scope="col">Patient</th>
+                <th scope="col">Doctor</th>
+                <th scope="col">Date</th>
+                <th scope="col">Time</th>
+                <th scope="col">Status</th>
+                <th scope="col">Notes</th>
+                <th scope="col">Actions</th>
+    </tr>
         </thead>
         <tbody>
             <?php if ($appointments->num_rows > 0): ?>
