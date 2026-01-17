@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="../js/script.js"></script>
+    <title>Personal Task Manager</title>
+    </head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Personal Task Manager</h1>
+            <div class="stats" id="task-counter">0 tasks remaining</div>
+        </header>
+        
+        <div class="main-content">
+            <div class="sidebar">
+                <h2>Categories</h2>
+                <div class="category-form">
+                    <input type="text" id="category-input" placeholder="Add new category" class="task-input">
+                    <button id="add-category-btn" class="add-btn">Add</button>
+                </div>
+                <ul class="category-list" id="category-list">
+                    <!-- Categories will be dynamically added here -->
+                </ul>
+            </div>
+            
+            <div class="task-list">
+                <h2>Tasks</h2>
+                <div class="task-form">
+                    <input type="text" id="task-input" placeholder="Add a new task" class="task-input">
+                    <select id="category-select" class="category-select">
+                        <option value="">Select Category</option>
+                    </select>
+                    <button id="add-task-btn" class="add-btn">Add Task</button>
+                </div>
+                
+                <div class="tasks-container" id="tasks-container">
+                    <!-- Tasks will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Task Modal -->
+    <div class="modal" id="edit-task-modal">
+        <div class="modal-content">
+            <h2>Edit Task</h2>
+            <input type="text" id="edit-task-input" class="task-input" placeholder="Task title">
+            <select id="edit-category-select" class="category-select" style="margin-top: 10px; width: 100%;">
+                <option value="">Select Category</option>
+            </select>
+            <div class="modal-actions">
+                <button class="cancel-btn" id="cancel-edit-btn">Cancel</button>
+                <button class="save-btn" id="save-edit-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    </body>
+</html>
