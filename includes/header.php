@@ -11,9 +11,9 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="has-fixed-navbar">
     <?php if (isLoggedIn()): ?>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar fixed-top navbar-expand-lg navbar-dark bg-primary">
         <div class="container-fluid">
             <a class="navbar-brand" href="dashboard.php">
                 <i class="bi bi-hospital"></i> Hospital Management System
@@ -36,11 +36,15 @@
                         <a class="nav-link" href="appointments.php"><i class="bi bi-calendar-check"></i> Appointments</a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link" href="Room Allotments/index.html"><i class="bi bi-house-door"></i> Room Allotments</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="payments.php"><i class="bi bi-currency-dollar"></i> Payments</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a>
                     </li>
+                    
                 </ul>
             </div>
         </div>
