@@ -78,121 +78,206 @@ include 'includes/header.php';
 
 <?php echo $message; ?>
 
-<div class="form-container">
-    <h3><?php echo $editAppointment ? 'Edit Appointment' : 'Schedule Appointment'; ?></h3>
-    <form method="POST" action="">
+<div class="form-card">
+    <div class="form-card-header">
+        <h3><i class="bi bi-calendar-plus"></i> <?php echo $editAppointment ? 'Edit Appointment' : 'Schedule New Appointment'; ?></h3>
+        <p class="form-subtitle"><?php echo $editAppointment ? 'Update appointment details below' : 'Fill in the details to schedule a new appointment'; ?></p>
+    </div>
+    <form method="POST" action="" class="form-modern">
         <?php if ($editAppointment): ?>
             <input type="hidden" name="id" value="<?php echo $editAppointment['id']; ?>">
         <?php endif; ?>
         
-        <div class="form-group">
-            <label>Patient:</label>
-            <select name="patient_id" required>
-                <option value="">Select Patient</option>
-                
-                <?php 
-                $patients->data_seek(0);
-                while ($patient = $patients->fetch_assoc()): 
-                ?>
-                    <option value="<?php echo $patient['id']; ?>" 
-                        <?php echo ($editAppointment && $editAppointment['patient_id'] == $patient['id']) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($patient['name']); ?>
-                    </option>
-                <?php endwhile; ?>
-                </select>
+        <div class="form-section">
+            <h4 class="form-section-title">Appointment Details</h4>
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label class="form-label">Patient *</label>
+                    <select name="patient_id" class="form-input" required>
+                        <option value="">Select Patient</option>
+                        
+                        <?php 
+                        $patients->data_seek(0);
+                        while ($patient = $patients->fetch_assoc()): 
+                        ?>
+                            <option value="<?php echo $patient['id']; ?>" 
+                                <?php echo ($editAppointment && $editAppointment['patient_id'] == $patient['id']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($patient['name']); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Doctor *</label>
+                    <select name="doctor_id" class="form-input" required>
+                        <option value="">Select Doctor</option>
+                        <?php 
+                        $doctors->data_seek(0);
+                        while ($doctor = $doctors->fetch_assoc()): 
+                        ?>
+                            <option value="<?php echo $doctor['id']; ?>" 
+                                <?php echo ($editAppointment && $editAppointment['doctor_id'] == $doctor['id']) ? 'selected' : ''; ?>>
+                                <?php echo htmlspecialchars($doctor['name']) . ' - ' . htmlspecialchars($doctor['specialization']); ?>
+                            </option>
+                        <?php endwhile; ?>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-input">
+                        <option value="Scheduled" <?php echo ($editAppointment && $editAppointment['status'] == 'Scheduled') ? 'selected' : ''; ?>>📅 Scheduled</option>
+                        <option value="Completed" <?php echo ($editAppointment && $editAppointment['status'] == 'Completed') ? 'selected' : ''; ?>>✅ Completed</option>
+                        <option value="Cancelled" <?php echo ($editAppointment && $editAppointment['status'] == 'Cancelled') ? 'selected' : ''; ?>>❌ Cancelled</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-grid-3">
+                <div class="form-group">
+                    <label class="form-label">Date *</label>
+                    <input type="date" name="appointment_date" class="form-input" 
+                        value="<?php echo $editAppointment['appointment_date'] ?? ''; ?>" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Time *</label>
+                    <input type="time" name="appointment_time" class="form-input" 
+                        value="<?php echo $editAppointment['appointment_time'] ?? ''; ?>" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <textarea name="notes" class="form-input textarea-input" rows="3" placeholder="Additional notes..."><?php echo $editAppointment['notes'] ?? ''; ?></textarea>
+                </div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>Doctor:</label>
-            <select name="doctor_id" required>
-                <option value="">Select Doctor</option>
-                <?php 
-                $doctors->data_seek(0);
-                while ($doctor = $doctors->fetch_assoc()): 
-                ?>
-                    <option value="<?php echo $doctor['id']; ?>" 
-                        <?php echo ($editAppointment && $editAppointment['doctor_id'] == $doctor['id']) ? 'selected' : ''; ?>>
-                        <?php echo htmlspecialchars($doctor['name']) . ' - ' . htmlspecialchars($doctor['specialization']); ?>
-                    </option>
-                <?php endwhile; ?>
-            </select>
+        <div class="form-actions">
+            <button type="submit" class="btn btn-submit">
+                <i class="bi bi-check-circle"></i> <?php echo $editAppointment ? 'Update Appointment' : 'Schedule Appointment'; ?>
+            </button>
+            <?php if ($editAppointment): ?>
+                <a href="appointments.php" class="btn btn-reset">
+                    <i class="bi bi-x-circle"></i> Cancel
+                </a>
+            <?php endif; ?>
         </div>
-
-        <div class="form-group">
-            <label>Date:</label>
-            <input type="date" name="appointment_date" 
-                value="<?php echo $editAppointment['appointment_date'] ?? ''; ?>" required>
-        </div>
-
-        <div class="form-group">
-            <label>Time:</label>
-            <input type="time" name="appointment_time" 
-                value="<?php echo $editAppointment['appointment_time'] ?? ''; ?>" required>
-        </div>
-
-        <div class="form-group">
-            <label>Status:</label>
-            <select name="status">
-                <option value="Scheduled" <?php echo ($editAppointment && $editAppointment['status'] == 'Scheduled') ? 'selected' : ''; ?>>Scheduled</option>
-                <option value="Completed" <?php echo ($editAppointment && $editAppointment['status'] == 'Completed') ? 'selected' : ''; ?>>Completed</option>
-                <option value="Cancelled" <?php echo ($editAppointment && $editAppointment['status'] == 'Cancelled') ? 'selected' : ''; ?>>Cancelled</option>
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label>Notes:</label>
-            <textarea name="notes" rows="3"><?php echo $editAppointment['notes'] ?? ''; ?></textarea>
-        </div>
-
-        <button type="submit" class="btn btn-primary">
-            <?php echo $editAppointment ? 'Update Appointment' : 'Add Appointment'; ?>
-        </button>
-        <?php if ($editAppointment): ?>
-            <a href="appointments.php" class="btn btn-secondary">Cancel</a>
-        <?php endif; ?>
     </form>
 </div>
 
 <div class="table-container">
-    <h3>All Appointments</h3>
-    <table class="table">
-        <thead>
-            <tr>
-                <th scope="col">ID</th>
-                <th scope="col">Patient</th>
-                <th scope="col">Doctor</th>
-                <th scope="col">Date</th>
-                <th scope="col">Time</th>
-                <th scope="col">Status</th>
-                <th scope="col">Notes</th>
-                <th scope="col">Actions</th>
-    </tr>
-        </thead>
-        <tbody>
-            <?php if ($appointments->num_rows > 0): ?>
-                <?php while ($row = $appointments->fetch_assoc()): ?>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3><i class="bi bi-calendar-week"></i> All Appointments</h3>
+        <div class="table-stats">
+            <span class="badge bg-primary"><?php echo $appointments->num_rows; ?> Total</span>
+        </div>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col"><i class="bi bi-person"></i> Patient</th>
+                    <th scope="col"><i class="bi bi-person-badge"></i> Doctor</th>
+                    <th scope="col"><i class="bi bi-calendar"></i> Date</th>
+                    <th scope="col"><i class="bi bi-clock"></i> Time</th>
+                    <th scope="col"><i class="bi bi-flag"></i> Status</th>
+                    <th scope="col"><i class="bi bi-chat-left"></i> Notes</th>
+                    <th scope="col"><i class="bi bi-gear"></i> Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php if ($appointments->num_rows > 0): ?>
+                    <?php while ($row = $appointments->fetch_assoc()): ?>
+                        <tr>
+                            <td><span class="badge bg-secondary"><?php echo $row['id']; ?></span></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-person-circle me-2 text-primary"></i>
+                                    <strong><?php echo htmlspecialchars($row['patient_name']); ?></strong>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-hospital me-2 text-info"></i>
+                                    <?php echo htmlspecialchars($row['doctor_name']); ?>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="date-badge">
+                                    <i class="bi bi-calendar-event"></i>
+                                    <?php echo date('M d, Y', strtotime($row['appointment_date'])); ?>
+                                </span>
+                            </td>
+                            <td>
+                                <span class="time-badge">
+                                    <i class="bi bi-clock-fill"></i>
+                                    <?php echo date('h:i A', strtotime($row['appointment_time'])); ?>
+                                </span>
+                            </td>
+                            <td>
+                                <?php 
+                                $statusClass = '';
+                                $statusIcon = '';
+                                switch(strtolower($row['status'])) {
+                                    case 'scheduled':
+                                        $statusClass = 'bg-primary';
+                                        $statusIcon = '📅';
+                                        break;
+                                    case 'completed':
+                                        $statusClass = 'bg-success';
+                                        $statusIcon = '✅';
+                                        break;
+                                    case 'cancelled':
+                                        $statusClass = 'bg-danger';
+                                        $statusIcon = '❌';
+                                        break;
+                                }
+                                ?>
+                                <span class="badge <?php echo $statusClass; ?>">
+                                    <?php echo $statusIcon . ' ' . $row['status']; ?>
+                                </span>
+                            </td>
+                            <td>
+                                <?php 
+                                $notes = htmlspecialchars($row['notes']);
+                                if (strlen($notes) > 40) {
+                                    echo '<span title="' . $notes . '">' . substr($notes, 0, 40) . '...</span>';
+                                } else {
+                                    echo $notes ?: '<em class="text-muted">No notes</em>';
+                                }
+                                ?>
+                            </td>
+                            <td class="actions">
+                                <div class="btn-group" role="group">
+                                    <a href="?edit=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-primary" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="?delete=<?php echo $row['id']; ?>" class="btn btn-sm btn-outline-danger" 
+                                       onclick="return confirm('Are you sure you want to delete this appointment?')" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                <?php else: ?>
                     <tr>
-                        <td><?php echo $row['id']; ?></td>
-                        <td><?php echo htmlspecialchars($row['patient_name']); ?></td>
-                        <td><?php echo htmlspecialchars($row['doctor_name']); ?></td>
-                        <td><?php echo date('M d, Y', strtotime($row['appointment_date'])); ?></td>
-                        <td><?php echo date('h:i A', strtotime($row['appointment_time'])); ?></td>
-                        <td><span class="status-<?php echo strtolower($row['status']); ?>"><?php echo $row['status']; ?></span></td>
-                        <td><?php echo htmlspecialchars(substr($row['notes'], 0, 50)) . (strlen($row['notes']) > 50 ? '...' : ''); ?></td>
-                        <td class="actions">
-                            <a href="?edit=<?php echo $row['id']; ?>" class="btn btn-edit">Edit</a>
-                            <a href="?delete=<?php echo $row['id']; ?>" class="btn btn-delete" 
-                               onclick="return confirm('Are you sure you want to delete this appointment?')">Delete</a>
+                        <td colspan="8" class="text-center py-5">
+                            <div class="empty-state">
+                                <i class="bi bi-calendar-x display-1 text-muted"></i>
+                                <h4 class="mt-3 text-muted">No appointments found</h4>
+                                <p class="text-muted">Schedule your first appointment using the form above.</p>
+                            </div>
                         </td>
                     </tr>
-                <?php endwhile; ?>
-            <?php else: ?>
-                <tr>
-                    <td colspan="8" style="text-align: center;">No appointments found</td>
-                </tr>
-            <?php endif; ?>
-        </tbody>
-    </table>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
 </div>
 
 <?php
